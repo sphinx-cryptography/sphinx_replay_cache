@@ -1,18 +1,18 @@
 [package]
 name = "sphinx_replay_cache"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["David Stainton <dawuud@riseup.net>"]
 description = "Sphinx cryptographic packet replay writeback cache."
-homepage = "https://github.com/david415/sphinx_replay_cache"
-repository = "https://github.com/david415/sphinx_replay_cache"
+homepage = "https://github.com/sphinx-cryptography/sphinx_replay_cache"
+repository = "https://github.com/sphinx-cryptography/sphinx_replay_cache"
 documentation = "https://docs.rs/sphinx_replay_cache/"
 readme = "README.md"
 keywords = ["cryptography", "sphinx", "mix", "replay", "cache"]
 license = "AGPL-3.0-only"
 
 [dependencies]
-sphinxcrypto = "0.0.15"
-ecdh_wrapper = "0.0.7"
+sphinxcrypto = "0.0.19"
+ecdh_wrapper = "0.0.9"
 rand = "^0.4.2"
 bloom = "0.3.2"
 sled = "0.16.2"
