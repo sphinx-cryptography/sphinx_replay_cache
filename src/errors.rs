@@ -53,8 +53,8 @@ impl Error for MixKeyError {
         match self {
             CreateCacheFailed => None,
             LoadCacheFailed => None,
-            KeyError(x) => x.cause(),
-            IoError(x) => x.cause(),
+            KeyError(x) => x.source(),
+            IoError(x) => x.source(),
             SledError => None,
         }
     }
