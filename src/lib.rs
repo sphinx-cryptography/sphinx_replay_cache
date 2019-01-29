@@ -55,7 +55,7 @@ use self::byteorder::{ByteOrder, LittleEndian};
 
 use self::rand::os::OsRng;
 
-use sled::Tree;
+use sled::Db;
 use bloom::{ASMS,BloomFilter};
 
 use sphinxcrypto::constants::{SPHINX_REPLAY_TAG_SIZE, PACKET_SIZE};
@@ -171,7 +171,7 @@ impl Clone for Tag {
 #[derive(Clone)]
 pub struct MixKey {
     filter: Arc<Mutex<BloomFilter<RandomState, RandomState>>>,
-    cache: Arc<Mutex<Tree>>,
+    cache: Arc<Mutex<Db>>,
     private_key: PrivateKey,
     epoch: u64,
 }
@@ -190,7 +190,7 @@ impl MixKey {
             .snapshot_after_ops(100_000); // XXX
         let cache_cfg = cache_cfg_builder.build();
 
-        let cache = match Tree::start(cache_cfg) {
+        let cache = match Db::start(cache_cfg) {
             Ok(x) => x,
             Err(e) => {
                 print!("create cache failed: {}", e);
