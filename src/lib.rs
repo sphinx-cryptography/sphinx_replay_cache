@@ -198,6 +198,22 @@ impl MixKey {
             },
         };
 
+        let mut filter = BloomFilter::with_rate(false_positive_rate, expected_num_items);
+
+        if cache.was_recovered() {
+            for x in cache.iter() {
+                if let Some(x) = Some(x) {
+                    match x {
+                        Ok(x) => {
+                            let (k,_v) = x;
+                            filter.insert(&k);
+                        },
+                        Err(_e) => return Err(MixKeyError::LoadCacheFailed),
+                    }
+                }
+            }
+        }
+
         if let Ok(Some(raw_epoch)) = cache.get(EPOCH_KEY.to_string().as_bytes()) {
             let stored_epoch = LittleEndian::read_u64(&raw_epoch);
             if epoch != stored_epoch {
@@ -226,7 +242,7 @@ impl MixKey {
         }
 
         Ok(MixKey{
-            filter: Arc::new(Mutex::new(BloomFilter::with_rate(false_positive_rate, expected_num_items))),
+            filter: Arc::new(Mutex::new(filter)),
             cache: Arc::new(Mutex::new(cache)),
             private_key: private_key,
             epoch: epoch,
@@ -322,6 +338,30 @@ mod tests {
             let new_mix_key = MixKey::new(128974848, epoch, epoch_duration, &cache_dir_path.to_str().unwrap().to_string()).unwrap();
             assert_eq!(epoch, new_mix_key.epoch);
             assert_eq!(priv_key, *new_mix_key.private_key());
+        }
+        TempDir::close(cache_dir).unwrap();
+    }
+
+    #[test]
+    fn recover_mix_key_test() {
+        let cache_dir = TempDir::new().unwrap();
+        {
+            let cache_dir_path = cache_dir.path().clone();
+            let epoch_duration = 1;
+            let epoch = 1;
+            let mut mix_key = MixKey::new(128974848, epoch, epoch_duration, &cache_dir_path.to_str().unwrap().to_string()).unwrap();
+            let mut rng = OsRng::new().unwrap();
+            let mut raw = [0u8; SPHINX_REPLAY_TAG_SIZE];
+            rng.fill_bytes(&mut raw);
+            let tag = Tag(raw);
+
+            assert_eq!(mix_key.is_replay(tag.clone()).unwrap(), false);
+            assert_eq!(mix_key.is_replay(tag.clone()).unwrap(), true);
+            mix_key.flush();
+            drop(mix_key);
+
+            let mut new_mix_key = MixKey::new(128974848, epoch, epoch_duration, &cache_dir_path.to_str().unwrap().to_string()).unwrap();
+            assert_eq!(new_mix_key.is_replay(tag.clone()).unwrap(), true);
         }
         TempDir::close(cache_dir).unwrap();
     }
